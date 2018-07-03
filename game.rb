@@ -3,6 +3,7 @@
 class Game
   def initialize
     @board = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
+    self.set_up
   end
 
   def set_up
@@ -32,11 +33,17 @@ class Game
         @hum = "O" 
         @com = "X"
       else
-        puts "Please enter a valid option."
+        puts "#{choice} is not a valid option. Please try again..."
+        sleep(2.5)
+        system "clear"
+        puts "Please choose your symbol..."
       end
+    end
       sleep(0.5)
       puts "Great choice! Your symbol is #{@hum} and the computer is #{@com}"
-      sleep(3)
+      sleep(2.5)
+      puts "Are you ready?!"
+      sleep(1.5)
       puts "Let's play!"
       sleep(1)
       print "."
@@ -47,7 +54,6 @@ class Game
       sleep(0.5)
       system "clear"
       puts
-    end
     self.start_game
   end
 
@@ -149,4 +155,3 @@ class Game
 end
 
 game = Game.new
-game.set_up
