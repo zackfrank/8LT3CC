@@ -1,8 +1,54 @@
+# For terminal only
+
 class Game
   def initialize
     @board = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
-    @com = "X" # the computer's marker
-    @hum = "O" # the user's marker
+  end
+
+  def set_up
+    system "clear"
+    puts "Welcome to Tic Tac Toe by Command Line Games, Inc!"
+    sleep(1.5)
+    puts
+    print "Please choose your symbol"
+    sleep(0.8)
+    print "."
+    sleep(0.3)
+    print "."
+    sleep(0.3)
+    print "."
+    sleep(0.5)
+    puts
+    @hum = nil
+    until @hum
+      puts "[1] for 'X'"
+      puts "[2] for 'O'"
+      print "Entry: "
+      choice = gets.chomp.to_i
+      if choice == 1
+        @hum = "X"
+        @com = "O"
+      elsif choice == 2
+        @hum = "O" 
+        @com = "X"
+      else
+        puts "Please enter a valid option."
+      end
+      sleep(0.5)
+      puts "Great choice! Your symbol is #{@hum} and the computer is #{@com}"
+      sleep(3)
+      puts "Let's play!"
+      sleep(1)
+      print "."
+      sleep(0.3)
+      print "."
+      sleep(0.3)
+      print "."
+      sleep(0.5)
+      system "clear"
+      puts
+    end
+    self.start_game
   end
 
   def start_game
@@ -37,7 +83,7 @@ class Game
     until spot
       if @board[4] == "4"
         spot = 4
-        @board[spot] = @com
+        @board[spot] = @com # if available, comp takes middle spot
       else
         spot = get_best_move(@board, @com)
         if @board[spot] != "X" && @board[spot] != "O"
@@ -50,13 +96,15 @@ class Game
   end
 
   def get_best_move(board, next_player, depth = 0, best_score = {})
-    available_spaces = []
+    # depth and best_score are not being used
+    # available_spaces = []
     best_move = nil
-    board.each do |s|
-      if s != "X" && s != "O"
-        available_spaces << s
-      end
-    end
+    # board.each do |s|             # refactored below:
+      # if s != "X" && s != "O"
+      #   available_spaces << s
+      # end
+    # end
+    available_spaces = board.select {|s| s != "X" && s != "O" }
     available_spaces.each do |as|
       board[as.to_i] = @com
       if game_is_over(board)
@@ -101,4 +149,4 @@ class Game
 end
 
 game = Game.new
-game.start_game
+game.set_up
