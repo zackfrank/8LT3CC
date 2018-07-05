@@ -9,16 +9,16 @@ class Game
   def set_up
     system "clear"
     puts "Welcome to Tic Tac Toe by Command Line Games, Inc!"
-    sleep(1.5)
+    # sleep(1.5)
     puts
     print "Please choose your symbol"
-    sleep(0.8)
+    # sleep(0.8)
     print "."
-    sleep(0.3)
+    # sleep(0.3)
     print "."
-    sleep(0.3)
+    # sleep(0.3)
     print "."
-    sleep(0.5)
+    # sleep(0.5)
     puts
     @hum = nil
     until @hum
@@ -34,37 +34,39 @@ class Game
         @com = "X"
       else
         puts "#{choice} is not a valid option. Please try again..."
-        sleep(2.5)
+        # sleep(2.5)
         system "clear"
         puts "Please choose your symbol..."
       end
     end
-      sleep(0.5)
       puts "Great choice! Your symbol is #{@hum} and the computer is #{@com}"
-      sleep(2.5)
+      # sleep(2.5)
       puts "Are you ready?!"
-      sleep(1.5)
+      # sleep(1.5)
       puts "Let's play!"
-      sleep(1)
+      # sleep(1)
       print "."
-      sleep(0.3)
+      # sleep(0.3)
       print "."
-      sleep(0.3)
+      # sleep(0.3)
       print "."
-      sleep(0.5)
-      system "clear"
-      puts
+      # sleep(0.5)
     self.start_game
   end
 
   def start_game
     # start by printing the board
+    system "clear"
+    puts "Make your first move!"
+    puts
     puts " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
-    puts "Enter [0-8]:"
+    puts
     # loop through until the game was won or tied
     until game_is_over(@board) || tie(@board)
+      puts "Enter [0-8] to choose a spot on the board:"
       get_human_spot
       if !game_is_over(@board) && !tie(@board)
+        computer_response
         eval_board
       end
       puts " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
@@ -79,9 +81,26 @@ class Game
       if @board[spot] != "X" && @board[spot] != "O"
         @board[spot] = @hum
       else
+        puts "That is not a valid spot, please try again:"
         spot = nil
       end
     end
+  end
+
+  def computer_response
+    responses = [
+      "Hmm, nice move. My turn...",
+      "Oooh you're good. Let's see...",
+      "You're playing to win, huh? Not on my watch...",
+      "Interesting... Let's see how you deal with this!",
+      "I see you're actually trying. Well you're not the only one...",
+      "Ok, I see what you did there. Now check this out...",
+      "Alright, alright. My turn!",
+      "Boom. Choosing spots like a boss. But I'm playing like a CEO :P"
+    ]
+    puts responses[rand(0..7)]
+    sleep(1.8)
+    system "clear"
   end
 
   def eval_board
@@ -99,10 +118,31 @@ class Game
         end
       end
     end
+    computer_move_description(spot)
+  end
+
+  def computer_move_description(spot)
+    spots = {
+      0 => "top-left corner",
+      1 => "top-middle",
+      2 => "top-right corner",
+      3 => "middle-left",
+      4 => "center",
+      5 => "middle-right",
+      6 => "bottom-left corner",
+      7 => "bottom-middle",
+      8 => "bottom-right corner",
+    }
+    if !game_is_over(@board) && !tie(@board)
+      puts "I took the #{spots[spot]} spot. Your turn."
+      puts
+    else
+      # game over response logic  
+    end
   end
 
   def get_best_move(board, next_player, depth = 0, best_score = {})
-    # depth and best_score are not being used
+    # depth and best_score are not being used - for minimax algorithm
     # available_spaces = []
     best_move = nil
     # board.each do |s|             # refactored below:
