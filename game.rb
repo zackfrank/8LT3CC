@@ -59,7 +59,7 @@ class Game
     system "clear"
     puts "Make your first move!"
     puts
-    puts " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
+    puts print_board
     puts
     # loop through until the game was won or tied
     until game_is_over(@board) || tie(@board)
@@ -68,10 +68,17 @@ class Game
       if !game_is_over(@board) && !tie(@board)
         computer_response
         eval_board
+        puts print_board
+        puts
+        puts "Your turn."
       end
-      puts " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
+      # puts print_board
     end
     puts "Game over"
+  end
+
+  def print_board
+    " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
   end
 
   def get_human_spot
@@ -80,6 +87,10 @@ class Game
       spot = gets.chomp.to_i
       if @board[spot] != "X" && @board[spot] != "O"
         @board[spot] = @hum
+        system "clear"
+        puts "Your spot: #{spot} - the #{spots[spot]} spot\n\n"
+        puts print_board
+        puts
       else
         puts "That is not a valid spot, please try again:"
         spot = nil
@@ -92,14 +103,15 @@ class Game
       "Hmm, nice move. My turn...",
       "Oooh you're good. Let's see...",
       "You're playing to win, huh? Not on my watch...",
-      "Interesting... Let's see how you deal with this!",
+      "Interesting... Let's see how you deal with this...",
       "I see you're actually trying. Well you're not the only one...",
       "Ok, I see what you did there. Now check this out...",
       "Alright, alright. My turn!",
       "Boom. Choosing spots like a boss. But I'm playing like a CEO :P"
     ]
-    puts responses[rand(0..7)]
-    sleep(1.8)
+    puts "Computer: #{responses[rand(0..7)]}"
+    puts "[ANY KEY] to continue."
+    gets.chomp
     system "clear"
   end
 
@@ -121,8 +133,8 @@ class Game
     computer_move_description(spot)
   end
 
-  def computer_move_description(spot)
-    spots = {
+  def spots
+    {
       0 => "top-left corner",
       1 => "top-middle",
       2 => "top-right corner",
@@ -133,8 +145,14 @@ class Game
       7 => "bottom-middle",
       8 => "bottom-right corner",
     }
+  end
+
+  def computer_move_description(spot)
     if !game_is_over(@board) && !tie(@board)
-      puts "I took the #{spots[spot]} spot. Your turn."
+      puts "Computer: I took the #{spots[spot]} spot."
+      sleep(1.5)
+      # puts "Your turn."
+      # sleep(0.7)
       puts
     else
       # game over response logic  
@@ -143,13 +161,7 @@ class Game
 
   def get_best_move(board, next_player, depth = 0, best_score = {})
     # depth and best_score are not being used - for minimax algorithm
-    # available_spaces = []
     best_move = nil
-    # board.each do |s|             # refactored below:
-      # if s != "X" && s != "O"
-      #   available_spaces << s
-      # end
-    # end
     available_spaces = board.select {|s| s != "X" && s != "O" }
     available_spaces.each do |as|
       board[as.to_i] = @com
