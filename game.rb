@@ -70,11 +70,12 @@ class Game
         eval_board
         puts print_board
         puts
+        sleep(1.5)
         puts "Your turn."
       end
       # puts print_board
     end
-    puts "Game over"
+    end_of_game    
   end
 
   def print_board
@@ -85,10 +86,10 @@ class Game
     spot = nil
     until spot
       spot = gets.chomp.to_i
-      if @board[spot] != "X" && @board[spot] != "O"
+      if @board[spot] != "X" && @board[spot] != "O" && spot.between?(0, 8)
         @board[spot] = @hum
         system "clear"
-        puts "Your spot: #{spot} - the #{spots[spot]} spot\n\n"
+        puts "You chose: #{spot} - the #{spots[spot]} spot\n\n"
         puts print_board
         puts
       else
@@ -149,11 +150,7 @@ class Game
 
   def computer_move_description(spot)
     if !game_is_over(@board) && !tie(@board)
-      puts "Computer: I took the #{spots[spot]} spot."
-      sleep(1.5)
-      # puts "Your turn."
-      # sleep(0.7)
-      puts
+      puts "Computer: I took the #{spots[spot]} spot.\n\n"
     else
       # game over response logic  
     end
@@ -189,7 +186,6 @@ class Game
   end
 
   def game_is_over(b)
-
     [b[0], b[1], b[2]].uniq.length == 1 ||
     [b[3], b[4], b[5]].uniq.length == 1 ||
     [b[6], b[7], b[8]].uniq.length == 1 ||
@@ -200,8 +196,38 @@ class Game
     [b[2], b[4], b[6]].uniq.length == 1
   end
 
+  def winner(b)
+    winning_possibilities = [
+      [b[0], b[1], b[2]],
+      [b[3], b[4], b[5]],
+      [b[6], b[7], b[8]],
+      [b[0], b[3], b[6]],
+      [b[1], b[4], b[7]],
+      [b[2], b[5], b[8]],
+      [b[0], b[4], b[8]],
+      [b[2], b[4], b[6]]
+    ]
+    if winning_possibilities.detect {|possible_win| possible_win.all? @com }
+      return "Computer wins. Nice try! You should play again!"
+    elsif winning_possibilities.detect {|possible_win| possible_win.all? @hum }
+      return "You win!! Great job! You should play again!"
+    else
+      return "It was a tie, nice try! You should play again!"
+    end
+  end
+
   def tie(b)
     b.all? { |s| s == "X" || s == "O" }
+  end
+
+  def end_of_game
+    puts "*** #{winner(@board)} ***\n\n"
+    puts "[1] To play again"
+    puts "[2] To quit"
+    choice = gets.chomp.to_i
+    if choice == 1
+      Game.new
+    end
   end
 
 end
