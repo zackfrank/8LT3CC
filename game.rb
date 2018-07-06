@@ -1,4 +1,6 @@
 # For terminal only
+require_relative 'human.rb'
+require_relative 'computer.rb'
 
 class Game
   def initialize
@@ -11,35 +13,10 @@ class Game
     puts "Welcome to Tic Tac Toe by Command Line Games, Inc!"
     # sleep(1.5)
     puts
-    print "Please choose your symbol"
-    # sleep(0.8)
-    print "."
-    # sleep(0.3)
-    print "."
-    # sleep(0.3)
-    print "."
-    # sleep(0.5)
-    puts
-    @hum = nil
-    until @hum
-      puts "[1] for 'X'"
-      puts "[2] for 'O'"
-      print "Entry: "
-      choice = gets.chomp.to_i
-      if choice == 1
-        @hum = "X"
-        @com = "O"
-      elsif choice == 2
-        @hum = "O" 
-        @com = "X"
-      else
-        puts "#{choice} is not a valid option. Please try again..."
-        # sleep(2.5)
-        system "clear"
-        puts "Please choose your symbol..."
-      end
-    end
-      puts "Great choice! Your symbol is #{@hum} and the computer is #{@com}"
+    player_setup
+    name_players
+    choose_symbol
+    who_goes_first
       # sleep(2.5)
       puts "Are you ready?!"
       # sleep(1.5)
@@ -54,42 +31,176 @@ class Game
     self.start_game
   end
 
+  def player_setup
+    game_types = [
+      "[1] Human vs. Human",
+      "[2] Human vs. Computer",
+      "[3] Computer vs. Computer"
+    ]
+    puts "Please choose a game type:"
+    puts "#{game_types[0]}"
+    puts "#{game_types[1]}"
+    puts "#{game_types[2]}"
+    print "Entry: "
+    @game_type = gets.chomp.to_i
+    @player1 = nil
+    until @player1 do
+      if @game_type == 1
+        @player1 = Human.new
+        @player2 = Human.new
+      elsif @game_type == 2
+        @player1 = Human.new
+        @player2 = Computer.new
+      elsif @game_type == 3
+        @player1 = Computer.new
+        @player2 = Computer.new
+      else
+        puts
+        puts "#{@game_type} is not a valid entry. Please choose [1] [2] or [3]:"
+        @game_type = gets.chomp.to_i
+      end
+    end
+    puts
+    puts "Great! You chose #{game_types[@game_type-1]}"
+    puts "[ANY KEY] to continue."
+    gets.chomp
+    system "clear"
+  end
+
+  def name_players
+    @names = {
+      @player1 => nil,
+      @player2 => nil
+    }
+    def your_name
+      print "Player 1, please enter your name: "
+      name = gets.chomp
+      until name != ""
+        print "Please enter at least one alphanumeric character as your name: "
+        name = gets.chomp
+      end
+      @names[@player1] = name
+    end
+    if @game_type == 1
+      your_name
+      print "Please enter a name for Player 2: "
+      name = gets.chomp
+      until name != ""
+        print "Please enter at least one alphanumeric character to name Player 2: "
+        name = gets.chomp
+      end
+      @names[@player2] = name
+    elsif @game_type == 2
+      your_name
+      @names[@player2] = "Computer"
+    elsif @game_type == 3
+      @names[@player1] = "Computer 1"
+      @names[@player2] = "Computer 2"
+    end
+  end
+
+  def choose_symbol
+    system "clear"
+    print "Please choose the symbol for #{@names[@player1]}"
+    # sleep(0.8)
+    print "."
+    # sleep(0.3)
+    print "."
+    # sleep(0.3)
+    print "."
+    # sleep(0.5)
+    puts
+    until @player1.make_move == "X" || @player1.make_move == "O"
+      puts "[1] for 'X'"
+      puts "[2] for 'O'"
+      print "Entry: "
+      choice = gets.chomp.to_i
+      if choice == 1
+        @player1.set_symbol("X")
+        @player2.set_symbol("O")
+      elsif choice == 2
+        @player1.set_symbol("O")
+        @player2.set_symbol("X")
+      else
+        puts
+        puts "#{choice} is not a valid option. Please try again:"
+        # sleep(2.5)
+        # system "clear"
+      end
+    end
+      puts
+      puts "Great choice! #{@names[@player1]}'s symbol is '#{@player1.make_move}' and #{@names[@player2]}'s is '#{@player2.make_move}'"
+      puts "[ANY KEY] to continue."
+      gets.chomp
+  end
+
+  def who_goes_first
+    system "clear"
+    puts "Who goes first?"
+    puts "[1] #{@names[@player1]}"
+    puts "[2] #{@names[@player2]}"
+    print "Entry: "
+    choice = gets.chomp.to_i
+    @current_player = @player1
+    player = @player1
+    if choice == 2
+      switch_player
+      player = @player2
+    elsif choice != 1
+      print "#{choice} is not a valid choice, please choose [1] or [2]: "
+    end
+    puts
+    puts "Great! #{@names[player]} will go first."
+    puts "[ANY KEY] to continue."
+    gets.chomp
+  end
+
   def start_game
     # start by printing the board
     system "clear"
-    puts "Make your first move!"
-    puts
-    puts print_board
-    puts
+    puts "#{@names[@current_player]}, make your first move!"
     # loop through until the game was won or tied
-    until game_is_over(@board) || tie(@board)
-      puts "Enter [0-8] to choose a spot on the board:"
-      get_human_spot
-      if !game_is_over(@board) && !tie(@board)
-        computer_response
-        eval_board
-        puts print_board
-        puts
-        sleep(1.5)
-        puts "Your turn."
-      end
-      # puts print_board
+    if @game_type == 1
+      human_vs_human
+    elsif @game_type == 2
+      human_vs_computer
+    elsif @game_type == 3
+      computer_vs_computer
     end
     end_of_game    
   end
 
-  def print_board
-    " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
+  def switch_player
+    @current_player == @player1 ? @current_player = @player2 : @current_player = @player1
+  end
+
+  def human_vs_human
+    until game_is_over(@board) || tie(@board)
+      get_human_spot
+      switch_player
+      unless game_is_over(@board) || tie(@board)
+        if @current_player == @player1
+          puts "#{@names[@player1]}'s turn."
+        else
+          puts "#{@names[@player2]}'s turn."
+        end
+      end
+    end
   end
 
   def get_human_spot
     spot = nil
+    puts
+    puts print_board
+    puts
     until spot
+      puts "Enter [0-8] to choose a spot on the board:"
       spot = gets.chomp.to_i
       if @board[spot] != "X" && @board[spot] != "O" && spot.between?(0, 8)
-        @board[spot] = @hum
+        @board[spot] = @current_player.make_move
         system "clear"
-        puts "You chose: #{spot} - the #{spots[spot]} spot\n\n"
+        @current_player == @player1 ? player = @names[@player1] : player = @names[@player2]
+        puts "#{player} chose: #{spot} - the #{spots[spot]} spot\n\n"
         puts print_board
         puts
       else
@@ -97,6 +208,42 @@ class Game
         spot = nil
       end
     end
+  end
+
+  def human_vs_computer
+    if @current_player == @player2
+      sleep(1.5)
+      puts
+      eval_board
+      puts print_board
+      puts
+      puts "Your turn #{@names[@player1]}!"
+      puts "[ANY KEY] to continue."
+      gets.chomp
+      system "clear"
+      puts "Make your first move #{@names[@player1]}."
+      puts
+      switch_player
+    end
+    until game_is_over(@board) || tie(@board)
+      get_human_spot
+      switch_player
+      if !game_is_over(@board) && !tie(@board)
+        computer_response
+        eval_board
+        # puts print_board
+        # puts
+        # sleep(1.5)
+        unless game_is_over(@board) || tie(@board)
+          puts "Your turn, #{@names[@player1]}."
+        end
+        switch_player
+      end
+    end
+  end
+
+  def print_board
+    " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
   end
 
   def computer_response
@@ -121,11 +268,11 @@ class Game
     until spot
       if @board[4] == "4"
         spot = 4
-        @board[spot] = @com # if available, comp takes middle spot
+        @board[spot] = @current_player.make_move # if available, comp takes middle spot
       else
-        spot = get_best_move(@board, @com)
+        spot = get_best_move(@board, @current_player.make_move)
         if @board[spot] != "X" && @board[spot] != "O"
-          @board[spot] = @com
+          @board[spot] = @current_player.make_move
         else
           spot = nil
         end
@@ -161,13 +308,13 @@ class Game
     best_move = nil
     available_spaces = board.select {|s| s != "X" && s != "O" }
     available_spaces.each do |as|
-      board[as.to_i] = @com
+      board[as.to_i] = @current_player.make_move
       if game_is_over(board)
         best_move = as.to_i
         board[as.to_i] = as
         return best_move
       else
-        board[as.to_i] = @hum
+        board[as.to_i] = @player1.make_move
         if game_is_over(board)
           best_move = as.to_i
           board[as.to_i] = as
@@ -207,12 +354,12 @@ class Game
       [b[0], b[4], b[8]],
       [b[2], b[4], b[6]]
     ]
-    if winning_possibilities.detect {|possible_win| possible_win.all? @com }
-      return "Computer wins. Nice try! You should play again!"
-    elsif winning_possibilities.detect {|possible_win| possible_win.all? @hum }
-      return "You win!! Great job! You should play again!"
+    if winning_possibilities.detect {|possible_win| possible_win.all? @player2.make_move }
+      return "#{@names[@player2]} wins! Nice try #{@names[@player1]}! Play again!"
+    elsif winning_possibilities.detect {|possible_win| possible_win.all? @player1.make_move }
+      return "#{@names[@player1]} wins! Great job #{@names[@player1]}! Play again!"
     else
-      return "It was a tie, nice try! You should play again!"
+      return "It was a tie! Play again!"
     end
   end
 
