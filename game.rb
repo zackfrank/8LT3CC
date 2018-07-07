@@ -176,6 +176,7 @@ class Game
 
   def human_vs_human
     until game_is_over(@board) || tie(@board)
+      print_board
       get_human_spot
       switch_player
       unless game_is_over(@board) || tie(@board)
@@ -190,60 +191,47 @@ class Game
 
   def get_human_spot
     spot = nil
-    puts
-    puts print_board
-    puts
     until spot
       puts "Enter [0-8] to choose a spot on the board:"
       spot = gets.chomp.to_i
       if @board[spot] != "X" && @board[spot] != "O" && spot.between?(0, 8)
         @board[spot] = @current_player.make_move
         system "clear"
-        @current_player == @player1 ? player = @names[@player1] : player = @names[@player2]
-        puts "#{player} chose: #{spot} - the #{spots[spot]} spot\n\n"
-        puts print_board
-        puts
+        puts "#{@names[@current_player]} chose: #{spot} - the #{spots[spot]} spot"
       else
-        puts "That is not a valid spot, please try again:"
+        puts "That is not a valid spot, please try again."
         spot = nil
       end
     end
   end
 
   def human_vs_computer
-    if @current_player == @player2
+    if @current_player.class == Computer
       sleep(1.5)
       puts
-      eval_board
-      puts print_board
-      puts
-      puts "Your turn #{@names[@player1]}!"
-      puts "[ANY KEY] to continue."
-      gets.chomp
-      system "clear"
-      puts "Make your first move #{@names[@player1]}."
-      puts
-      switch_player
     end
     until game_is_over(@board) || tie(@board)
-      get_human_spot
-      switch_player
-      if !game_is_over(@board) && !tie(@board)
-        computer_response
+      if @current_player.class == Human
+        print_board
+        get_human_spot
+        print_board
+        unless game_is_over(@board) || tie(@board)
+          computer_response
+        end
+      else
         eval_board
-        # puts print_board
-        # puts
-        # sleep(1.5)
         unless game_is_over(@board) || tie(@board)
           puts "Your turn, #{@names[@player1]}."
         end
-        switch_player
       end
+      switch_player
     end
   end
 
   def print_board
-    " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
+    puts
+    puts " #{@board[0]} | #{@board[1]} | #{@board[2]} \n===+===+===\n #{@board[3]} | #{@board[4]} | #{@board[5]} \n===+===+===\n #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
+    puts
   end
 
   def computer_response
@@ -368,6 +356,9 @@ class Game
   end
 
   def end_of_game
+    system "clear"
+    puts "*** GAME OVER ***"
+    print_board
     puts "*** #{winner(@board)} ***\n\n"
     puts "[1] To play again"
     puts "[2] To quit"
