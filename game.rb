@@ -141,16 +141,18 @@ class Game
     puts "[2] #{@names[@player2]}"
     print "Entry: "
     choice = gets.chomp.to_i
-    @current_player = @player1
-    player = @player1
-    if choice == 2
-      switch_player
-      player = @player2
-    elsif choice != 1
-      print "#{choice} is not a valid choice, please choose [1] or [2]: "
+    until @current_player
+      if choice == 1
+        @current_player = @player1
+      elsif choice == 2
+        @current_player = @player2
+      else
+        print "#{choice} is not a valid choice, please choose [1] or [2]: "
+        choice = gets.chomp.to_i
+      end
     end
     puts
-    puts "Great! #{@names[player]} will go first."
+    puts "Great! #{@names[@current_player]} will go first."
     puts "[ANY KEY] to continue."
     gets.chomp
   end
@@ -172,6 +174,10 @@ class Game
 
   def switch_player
     @current_player == @player1 ? @current_player = @player2 : @current_player = @player1
+  end
+
+  def opposite_player
+    @current_player == @player1 ? @player2 : @player1
   end
 
   def human_vs_human
@@ -225,6 +231,20 @@ class Game
         end
       end
       switch_player
+    end
+  end
+
+  def computer_vs_computer
+    until game_is_over(@board) || tie(@board)
+      eval_board
+      unless game_is_over(@board) || tie(@board)
+        print_board
+        switch_player
+        puts "#{@names[@current_player]}'s turn."
+        puts "[ANY KEY] to continue"
+        gets.chomp
+        system "clear"
+      end
     end
   end
 
@@ -285,8 +305,8 @@ class Game
 
   def computer_move_description(spot)
     if !game_is_over(@board) && !tie(@board)
-      puts "Computer: I took the #{spots[spot]} spot.\n\n"
-    else
+      puts "#{@names[@current_player]}: I took the #{spots[spot]} spot.\n\n"
+    # else
       # game over response logic  
     end
   end
@@ -302,7 +322,7 @@ class Game
         board[as.to_i] = as
         return best_move
       else
-        board[as.to_i] = @player1.make_move
+        board[as.to_i] = opposite_player.make_move
         if game_is_over(board)
           best_move = as.to_i
           board[as.to_i] = as
