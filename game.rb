@@ -14,20 +14,23 @@ class Game
     # sleep(1.5)
     puts
     player_setup
+    if @player2.class == Computer
+      difficulty_level
+    end
     name_players
     choose_symbol
     who_goes_first
-      # sleep(2.5)
-      puts "Are you ready?!"
-      # sleep(1.5)
-      puts "Let's play!"
-      # sleep(1)
-      print "."
-      # sleep(0.3)
-      print "."
-      # sleep(0.3)
-      print "."
-      # sleep(0.5)
+    # sleep(2.5)
+    puts "Are you ready?!"
+    # sleep(1.5)
+    puts "Let's play!"
+    # sleep(1)
+    print "."
+    # sleep(0.3)
+    print "."
+    # sleep(0.3)
+    print "."
+    # sleep(0.5)
     self.start_game
   end
 
@@ -67,11 +70,40 @@ class Game
     system "clear"
   end
 
+  def difficulty_level
+    puts "Please choose a difficulty level:"
+    puts "[1] Easy"
+    puts "[2] Medium"
+    puts "[3] Hard"
+    print "Entry: "
+    level = gets.chomp.to_i
+    @difficulty_level = nil
+    until @difficulty_level do
+      if level == 1
+        @difficulty_level = "Easy"
+      elsif level == 2
+        @difficulty_level = "Medium"
+      elsif level == 3
+        @difficulty_level = "Hard"
+      else
+        puts
+        puts "#{@game_type} is not a valid entry. Please choose [1] [2] or [3]:"
+        level = gets.chomp.to_i
+      end
+    end
+    puts
+    puts "Great! You chose #{@difficulty_level}"
+    puts "[ANY KEY] to continue."
+    gets.chomp
+    system "clear"
+  end
+
   def name_players
     @names = {
       @player1 => nil,
       @player2 => nil
     }
+
     def enter_name
       print "Player 1, please enter your name: "
       name = gets.chomp
@@ -81,6 +113,7 @@ class Game
       end
       @names[@player1] = name
     end
+
     if @game_type == 1
       enter_name
       print "Please enter a name for Player 2: "
@@ -128,10 +161,10 @@ class Game
         # system "clear"
       end
     end
-      puts
-      puts "Great choice! #{@names[@player1]}'s symbol is '#{@player1.make_move}' and #{@names[@player2]}'s is '#{@player2.make_move}'"
-      puts "[ANY KEY] to continue."
-      gets.chomp
+    puts
+    puts "Great choice! #{@names[@player1]}'s symbol is '#{@player1.make_move}' and #{@names[@player2]}'s is '#{@player2.make_move}'"
+    puts "[ANY KEY] to continue."
+    gets.chomp
   end
 
   def who_goes_first
@@ -161,6 +194,9 @@ class Game
     # start by printing the board
     system "clear"
     puts "#{@names[@current_player]}, make your first move!"
+    if (@game_type == 2 && @current_player.class == Computer) || @game_type == 3
+      puts "(#{@names[@current_player]} is thinking...)"
+    end
     # loop through until the game was won or tied
     if @game_type == 1
       human_vs_human
@@ -272,30 +308,58 @@ class Game
   end
 
   def eval_board
-    # spot = nil
-    # until spot
-    #   if @board[4] == "4"
-    #     spot = 4
-    #     @board[spot] = @current_player.make_move # if available, comp takes middle spot
-    #   else
-    #     spot = get_best_move(@board, @current_player)
-    #     if @board[spot] != "X" && @board[spot] != "O"
-    #       @board[spot] = @current_player.make_move
-    #     else
-    #       spot = nil
-    #     end
-    #   end
-    # end
-
-    spot = get_best_move(@board, @current_player)
-    @board[spot] = @current_player.make_move
-    computer_move_description(spot)
+    if @difficulty_level == "Medium"
+      spot = nil
+      until spot
+        if @board[4] == "4"
+          spot = 4
+          @board[spot] = @current_player.make_move # if available, comp takes middle spot
+        else
+          spot = get_best_move(@board, @current_player)
+          if @board[spot] != "X" && @board[spot] != "O"
+            @board[spot] = @current_player.make_move
+          else
+            spot = nil
+          end
+        end
+      end
+    else
+      spot = get_best_move(@board, @current_player)
+      @board[spot] = @current_player.make_move
+      computer_move_description(spot)
+    end
   end
 
   def get_best_move(board, player, depth = 0)
-    minimax(board, player, depth)
-    puts "Best move is #{@choice}"
-    return @choice.to_i
+    if @difficulty_level == "Medium"
+      best_move = nil
+      available_spaces(board).each do |as|
+        board[as.to_i] = @current_player.make_move
+        if game_is_over(board)
+          best_move = as.to_i
+          board[as.to_i] = as
+          return best_move
+        else
+          board[as.to_i] = opposite_player(@current_player).make_move
+          if game_is_over(board)
+            best_move = as.to_i
+            board[as.to_i] = as
+            return best_move
+          else
+            board[as.to_i] = as
+          end
+        end
+      end
+      if best_move
+        return best_move
+      else
+        n = rand(0..available_spaces(board).count)
+        return available_spaces(board)[n].to_i
+      end
+    else
+      minimax(board, player, depth)
+      return @choice.to_i
+    end
   end
 
   def spots
@@ -325,33 +389,9 @@ class Game
   end
 
 
-  # def get_best_move(board, next_player, depth = 0, best_score = {})
-  #   # depth and best_score are not being used - for minimax algorithm
-  #   best_move = nil
-  #   available_spaces(board).each do |as|
-  #     board[as.to_i] = @current_player.make_move
-  #     if game_is_over(board)
-  #       best_move = as.to_i
-  #       board[as.to_i] = as
-  #       return best_move
-  #     else
-  #       board[as.to_i] = opposite_player(@current_player).make_move
-  #       if game_is_over(board)
-  #         best_move = as.to_i
-  #         board[as.to_i] = as
-  #         return best_move
-  #       else
-  #         board[as.to_i] = as
-  #       end
-  #     end
-  #   end
-  #   if best_move
-  #     return best_move
-  #   else
-  #     n = rand(0..available_spaces(board).count)
-  #     return available_spaces(board)[n].to_i
-  #   end
-  # end
+  def get_medium_difficulty_move(board)
+    
+  end
 
   def get_score(board, depth)
     winner(board)
@@ -368,59 +408,40 @@ class Game
     if game_is_over(board) || tie(board)
       return get_score(board, depth)
     end
-
     depth += 1
-
     scores = []
     moves = []
-
-    # puts "Outside of loop available spaces: #{available_spaces(board)}"
-
     available_spaces(board).each do |space|
       new_board = board.dup # temporary representation of current board
       new_board[space.to_i] = player.make_move # make potential move on temp board 
-      # puts "--------------"
-      # puts "Start of Each Loop"
-      # puts "available spaces: #{available_spaces(board)}"
-      # puts "space: #{space}"
-      # puts "board: #{board}"
-      # puts "depth: #{depth}"
-      # puts "Last move: #{@names[player]}"
-      # puts "new_board: #{new_board}"
-      # puts "Next move: #{@names[opposite_player(player)]}"
-      # puts "--------------"
       scores << minimax(new_board, opposite_player(player), depth) # store potential state of board in array
       moves << space # store possible move (available space) in array
-      # puts "--------------"
-      # puts "POST SCORES"
-      # puts "Last move: #{@names[player]}"
-      # puts "Next move: #{@names[opposite_player(player)]}"
-      # puts "available spaces: #{available_spaces(board)}"
-      # puts "space: #{space}"
-      # puts "board: #{board}"
-      # puts "new_board: #{new_board}"
-      # puts "available spaces: #{available_spaces(board)}"
-      # puts "winner: #{@names[winner(new_board)]}"
-      # puts "scores = #{scores}"
-      # puts "moves = #{moves}"
-      # puts "--------------"
     end
-
-    # p scores
-    # p moves
-
-    if @current_player == player
-      # This is the max calculation
-      max_score_index = scores.each_with_index.max[1]
-      @choice = moves[max_score_index]
-      # puts "@choice = #{@choice}"
-      return scores[max_score_index]
+    
+    if @difficulty_level == "Hard"
+      if @current_player == player
+        # This is the max calculation
+        max_score_index = scores.each_with_index.max[1]
+        @choice = moves[max_score_index]
+        return scores[max_score_index]
+      else
+        # This is the min calculation
+        min_score_index = scores.each_with_index.min[1]
+        @choice = moves[min_score_index]
+        return scores[min_score_index]
+      end
     else
-      # This is the min calculation
-      min_score_index = scores.each_with_index.min[1]
-      @choice = moves[min_score_index]
-      # puts "@choice = #{@choice}"
-      return scores[min_score_index]
+      if @current_player == player
+        # This is the min calculation
+        min_score_index = scores.each_with_index.min[1]
+        @choice = moves[min_score_index]
+        return scores[min_score_index]
+      else
+        # This is the max calculation
+        max_score_index = scores.each_with_index.max[1]
+        @choice = moves[max_score_index]
+        return scores[max_score_index]
+      end
     end
   end
 
