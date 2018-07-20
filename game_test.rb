@@ -1,32 +1,32 @@
 require 'minitest/autorun'
-require_relative 'game'
+require_relative 'game' 
 
 class GameTest < Minitest::Test
-  def test_no_primes_under_two
+  def test1
     # skip
     expected = []
     assert_equal expected, Game.new
   end
 
-  def test_find_first_prime
+  def test2
     skip
     expected = []
     assert_equal expected, Game.new
   end
 
-  def test_find_primes_up_to_10
+  def test3
     skip
     expected = []
     assert_equal expected, Game.new
   end
 
-  def test_limit_is_prime
+  def test4
     skip
     expected = []
     assert_equal expected, Game.new
   end
 
-  def test_find_primes_up_to_1000
+  def test5
     skip
     expected = []
     assert_equal expected, Game.new

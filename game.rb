@@ -72,7 +72,7 @@ class Game
       @player1 => nil,
       @player2 => nil
     }
-    def your_name
+    def enter_name
       print "Player 1, please enter your name: "
       name = gets.chomp
       until name != ""
@@ -82,7 +82,7 @@ class Game
       @names[@player1] = name
     end
     if @game_type == 1
-      your_name
+      enter_name
       print "Please enter a name for Player 2: "
       name = gets.chomp
       until name != ""
@@ -91,7 +91,7 @@ class Game
       end
       @names[@player2] = name
     elsif @game_type == 2
-      your_name
+      enter_name
       @names[@player2] = "Computer"
     elsif @game_type == 3
       @names[@player1] = "Computer 1"
@@ -176,8 +176,8 @@ class Game
     @current_player == @player1 ? @current_player = @player2 : @current_player = @player1
   end
 
-  def opposite_player
-    @current_player == @player1 ? @player2 : @player1
+  def opposite_player(player)
+    player == @player1 ? @player2 : @player1
   end
 
   def human_vs_human
@@ -272,21 +272,30 @@ class Game
   end
 
   def eval_board
-    spot = nil
-    until spot
-      if @board[4] == "4"
-        spot = 4
-        @board[spot] = @current_player.make_move # if available, comp takes middle spot
-      else
-        spot = get_best_move(@board, @current_player.make_move)
-        if @board[spot] != "X" && @board[spot] != "O"
-          @board[spot] = @current_player.make_move
-        else
-          spot = nil
-        end
-      end
-    end
+    # spot = nil
+    # until spot
+    #   if @board[4] == "4"
+    #     spot = 4
+    #     @board[spot] = @current_player.make_move # if available, comp takes middle spot
+    #   else
+    #     spot = get_best_move(@board, @current_player)
+    #     if @board[spot] != "X" && @board[spot] != "O"
+    #       @board[spot] = @current_player.make_move
+    #     else
+    #       spot = nil
+    #     end
+    #   end
+    # end
+
+    spot = get_best_move(@board, @current_player)
+    @board[spot] = @current_player.make_move
     computer_move_description(spot)
+  end
+
+  def get_best_move(board, player, depth = 0)
+    minimax(board, player, depth)
+    puts "Best move is #{@choice}"
+    return @choice.to_i
   end
 
   def spots
@@ -306,41 +315,130 @@ class Game
   def computer_move_description(spot)
     if !game_is_over(@board) && !tie(@board)
       puts "#{@names[@current_player]}: I took the #{spots[spot]} spot.\n\n"
-    # else
-      # game over response logic  
     end
   end
 
-  def get_best_move(board, next_player, depth = 0, best_score = {})
-    # depth and best_score are not being used - for minimax algorithm
-    best_move = nil
-    available_spaces = board.select {|s| s != "X" && s != "O" }
-    available_spaces.each do |as|
-      board[as.to_i] = @current_player.make_move
-      if game_is_over(board)
-        best_move = as.to_i
-        board[as.to_i] = as
-        return best_move
-      else
-        board[as.to_i] = opposite_player.make_move
-        if game_is_over(board)
-          best_move = as.to_i
-          board[as.to_i] = as
-          return best_move
-        else
-          board[as.to_i] = as
-        end
-      end
+  def available_spaces(board)
+    unless game_is_over(board) || tie(board)
+      board.select {|s| s != "X" && s != "O" }
     end
-    if best_move
-      return best_move
+  end
+
+
+  # def get_best_move(board, next_player, depth = 0, best_score = {})
+  #   # depth and best_score are not being used - for minimax algorithm
+  #   best_move = nil
+  #   available_spaces(board).each do |as|
+  #     board[as.to_i] = @current_player.make_move
+  #     if game_is_over(board)
+  #       best_move = as.to_i
+  #       board[as.to_i] = as
+  #       return best_move
+  #     else
+  #       board[as.to_i] = opposite_player(@current_player).make_move
+  #       if game_is_over(board)
+  #         best_move = as.to_i
+  #         board[as.to_i] = as
+  #         return best_move
+  #       else
+  #         board[as.to_i] = as
+  #       end
+  #     end
+  #   end
+  #   if best_move
+  #     return best_move
+  #   else
+  #     n = rand(0..available_spaces(board).count)
+  #     return available_spaces(board)[n].to_i
+  #   end
+  # end
+
+  def get_score(board, depth)
+    winner(board)
+    if @winner == @current_player
+      return 10 - depth
+    elsif @winner == opposite_player(@current_player)
+      return depth - 10
     else
-      n = rand(0..available_spaces.count)
-      return available_spaces[n].to_i
+      return 0
     end
   end
 
-  def game_is_over(b)
+  def minimax(board, player, depth)
+    if game_is_over(board) || tie(board)
+      return get_score(board, depth)
+    end
+
+    depth += 1
+
+    scores = []
+    moves = []
+
+    # puts "Outside of loop available spaces: #{available_spaces(board)}"
+
+    available_spaces(board).each do |space|
+      new_board = board.dup # temporary representation of current board
+      new_board[space.to_i] = player.make_move # make potential move on temp board 
+      # puts "--------------"
+      # puts "Start of Each Loop"
+      # puts "available spaces: #{available_spaces(board)}"
+      # puts "space: #{space}"
+      # puts "board: #{board}"
+      # puts "depth: #{depth}"
+      # puts "Last move: #{@names[player]}"
+      # puts "new_board: #{new_board}"
+      # puts "Next move: #{@names[opposite_player(player)]}"
+      # puts "--------------"
+      scores << minimax(new_board, opposite_player(player), depth) # store potential state of board in array
+      moves << space # store possible move (available space) in array
+      # puts "--------------"
+      # puts "POST SCORES"
+      # puts "Last move: #{@names[player]}"
+      # puts "Next move: #{@names[opposite_player(player)]}"
+      # puts "available spaces: #{available_spaces(board)}"
+      # puts "space: #{space}"
+      # puts "board: #{board}"
+      # puts "new_board: #{new_board}"
+      # puts "available spaces: #{available_spaces(board)}"
+      # puts "winner: #{@names[winner(new_board)]}"
+      # puts "scores = #{scores}"
+      # puts "moves = #{moves}"
+      # puts "--------------"
+    end
+
+    # p scores
+    # p moves
+
+    if @current_player == player
+      # This is the max calculation
+      max_score_index = scores.each_with_index.max[1]
+      @choice = moves[max_score_index]
+      # puts "@choice = #{@choice}"
+      return scores[max_score_index]
+    else
+      # This is the min calculation
+      min_score_index = scores.each_with_index.min[1]
+      @choice = moves[min_score_index]
+      # puts "@choice = #{@choice}"
+      return scores[min_score_index]
+    end
+  end
+
+  # def winning_possibilities(b)
+  # use this in game_is_over and winner
+  #   [
+  #     [b[0], b[1], b[2]],
+  #     [b[3], b[4], b[5]],
+  #     [b[6], b[7], b[8]],
+  #     [b[0], b[3], b[6]],
+  #     [b[1], b[4], b[7]],
+  #     [b[2], b[5], b[8]],
+  #     [b[0], b[4], b[8]],
+  #     [b[2], b[4], b[6]]
+  #   ]
+  # end
+
+  def game_is_over(b) #switch to someone_wins or something so game_is_over can be used to combine this and tie
     [b[0], b[1], b[2]].uniq.length == 1 ||
     [b[3], b[4], b[5]].uniq.length == 1 ||
     [b[6], b[7], b[8]].uniq.length == 1 ||
@@ -349,6 +447,10 @@ class Game
     [b[2], b[5], b[8]].uniq.length == 1 ||
     [b[0], b[4], b[8]].uniq.length == 1 ||
     [b[2], b[4], b[6]].uniq.length == 1
+  end
+
+  def tie(b)
+    b.all? { |s| s == "X" || s == "O" }
   end
 
   def winner(b)
@@ -363,23 +465,30 @@ class Game
       [b[2], b[4], b[6]]
     ]
     if winning_possibilities.detect {|possible_win| possible_win.all? @player2.make_move }
-      return "#{@names[@player2]} wins! Nice try #{@names[@player1]}! Play again!"
+      @winner = @player2
     elsif winning_possibilities.detect {|possible_win| possible_win.all? @player1.make_move }
-      return "#{@names[@player1]} wins! Great job #{@names[@player1]}! Play again!"
+      @winner = @player1
     else
-      return "It was a tie! Play again!"
+      @winner = 'Tie'
     end
   end
 
-  def tie(b)
-    b.all? { |s| s == "X" || s == "O" }
+  def winning_message
+    if @winner == @player1
+      return "#{@names[@player1]} wins! Great job #{@names[@player1]}! Play again!"
+    elsif @winner == @player2
+      return "#{@names[@player2]} wins! Nice try #{@names[@player1]}! Play again!"
+    else
+      return "It was a tie! Play again!"
+    end
   end
 
   def end_of_game
     system "clear"
     puts "*** GAME OVER ***"
     print_board
-    puts "*** #{winner(@board)} ***\n\n"
+    winner(@board)
+    puts "*** #{winning_message} ***\n\n"
     puts "[1] To play again"
     puts "[2] To quit"
     choice = gets.chomp.to_i
